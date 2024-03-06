@@ -1,0 +1,19 @@
+### 1. Create user
+POST http://8852717131488389489@192.168.0.103:8111/app/rest/users
+Content-Type: application/json
+Accept: application/json
+X-TC-CSRF-Token: 0088cd56-9959-4a44-9aeb-9180eff4cbb5
+
+{
+  "username": "testUser2",
+  "password": "testPassword1",
+  "email": "testEmail2",
+  "roles": {
+    "role": [
+      {
+        "roleId": "SYSTEM_ADMIN",
+        "scope": "g"
+      }
+    ]
+  }
+}
