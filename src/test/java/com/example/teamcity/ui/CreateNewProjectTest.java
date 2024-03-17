@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 public class CreateNewProjectTest extends BaseUiTest {
     @Test
     public void authorizedUserShouldBeAbleCreateNewProject() {
-        var testData = testDataStorage.addTestData();
+        var testData = testDataStorage.addTestDataForUITest();
         var url = "https://github.com/AnastasiiaBycova/core-qa";
 
         loginAsUser(testData.getUser());

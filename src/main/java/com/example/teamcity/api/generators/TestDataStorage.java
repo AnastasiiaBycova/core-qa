@@ -23,6 +23,11 @@ public class TestDataStorage {
         addTestData(testData);
         return testData;
     }
+    public TestData addTestDataForUITest() {
+        var testData = TestDataGenerator.generateDataForUITest();
+        addTestData(testData);
+        return testData;
+    }
 
     public TestData addTestData(TestData testData) { // добавить ту, которую передаем
         getStorage().testDataList.add(testData);

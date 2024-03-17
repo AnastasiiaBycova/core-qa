@@ -30,6 +30,5 @@ public class CreateNewProject extends Page {
         buildTypeNameInput.clear();
         buildTypeNameInput.sendKeys(buildTypeName);
         submit();
-
     }
 }
