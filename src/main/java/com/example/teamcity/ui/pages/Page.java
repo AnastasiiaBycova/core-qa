@@ -20,6 +20,8 @@ public abstract class Page {
 
     private SelenideElement pageWaitingMarker2 = element(Selectors.byId("inProgress"));
 
+    private SelenideElement pageCreateWaitingMarker = element(Selectors.byClass("icon-refresh icon-spin ring-loader-inline progressRing progressRingDefault"));
+
     //waiting сохранения данных
     public void submit() {
         submitButton.click();
@@ -36,6 +38,9 @@ public abstract class Page {
         savingWaitingMarker.shouldNotBe(Condition.visible, Duration.ofSeconds(30));
     }
 
+    public void waitUntilCreationPageIsLoaded() {
+        pageCreateWaitingMarker.shouldNotBe(Condition.visible, Duration.ofSeconds(30));
+    }
 
     /*
     метод, который возвращает List<ProjectElement>
