@@ -1,8 +1,6 @@
 package com.example.teamcity.api;
 
 import com.example.teamcity.api.generators.TestDataGenerator;
-import com.example.teamcity.api.requests.checked.CheckedProject;
-import com.example.teamcity.api.requests.checked.CheckedUser;
 import com.example.teamcity.api.requests.unchecked.UncheckedProject;
 import com.example.teamcity.api.spec.Specifications;
 import org.apache.http.HttpStatus;

@@ -3,12 +3,14 @@ package com.example.teamcity.ui;
 import com.codeborne.selenide.Condition;
 import com.example.teamcity.api.enums.Role;
 import com.example.teamcity.api.generators.TestDataGenerator;
+import com.example.teamcity.api.requests.unchecked.UncheckedProject;
+import com.example.teamcity.api.spec.Specifications;
 import com.example.teamcity.ui.elements.HeaderElement;
 import com.example.teamcity.ui.pages.LoginPage;
-import com.example.teamcity.ui.pages.admin.CreateNewBuildConfig;
 import com.example.teamcity.ui.pages.admin.CreateNewProject;
 import com.example.teamcity.ui.pages.admin.GeneralSettingsOfProject;
 import com.example.teamcity.ui.pages.favorites.ProjectsPage;
+import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
 
 public class CreateNewProjectTest extends BaseUiTest {
@@ -28,7 +30,8 @@ public class CreateNewProjectTest extends BaseUiTest {
 6. Заполнить обязательные поля (Project Name, Build Configuration Name) → → Нажать "Proceed"
 7. Перейти на страницу всех проектов
 8. Проверка, что проект создан и отображается в дереве проектов на первом месте
-9. --Очистка данных--
+9. Проверка, что проект создан - API запрос
+10. --Очистка данных--
 */
     @Test
     public void authorizedUserShouldBeAbleCreateNewProjectByUrl() {
@@ -46,6 +49,10 @@ public class CreateNewProjectTest extends BaseUiTest {
                 .getSubprojects()
                 .stream().reduce((first, second) -> first).get()
                 .getHeader().shouldHave(Condition.text(testData.getProject().getName()));
+
+        new UncheckedProject(Specifications.getSpec().authSpec(testData.getUser()))
+                .get(testData.getProject().getId())
+                .then().assertThat().statusCode(HttpStatus.SC_OK);
     }
 
     /**
@@ -58,7 +65,8 @@ public class CreateNewProjectTest extends BaseUiTest {
      6. Проверка, что отображается сообщение об успешном создании проекта "Project -projectName- has been successfully created."
      7. Перейти на страницу всех проектов
      8. Проверка, что проект создан и отображается в дереве проектов
-     9. --Очистка данных--
+     9. Проверка, что проект создан - API запрос
+     10. --Очистка данных--
      */
     @Test
     public void authorizedUserShouldBeAbleCreateNewProjectManually() {
@@ -78,6 +86,10 @@ public class CreateNewProjectTest extends BaseUiTest {
                 .getSubprojects()
                 .stream().reduce((first, second) -> first).get()
                 .getHeader().shouldHave(Condition.text(testData.getProject().getName()));
+
+        new UncheckedProject(Specifications.getSpec().authSpec(testData.getUser()))
+                .get(testData.getProject().getId())
+                .then().assertThat().statusCode(HttpStatus.SC_OK);
     }
 
     /**
@@ -87,7 +99,8 @@ public class CreateNewProjectTest extends BaseUiTest {
      3. Проверка, что рядом с разделом Projects в главном меню нет кнопки +
      4. Перейти на страницу проектов
      5. Проверка, что на странице проектов отсутствует кнопка "New project"
-     6. --Очистка данных--
+     6. Проверка, что нельзя отправить API запрос на создание  - ожидается 403 ошибка
+     7. --Очистка данных--
     */
 
     @Test
@@ -109,5 +122,9 @@ public class CreateNewProjectTest extends BaseUiTest {
         projectsPage
                 .open()
                 .verifyCreateNewProjectButtonNotVisibilityAndNotExist();
+
+        new UncheckedProject(Specifications.getSpec().authSpec(testData.getUser()))
+                .create(testData.getProject())
+                .then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN);
     }
 }

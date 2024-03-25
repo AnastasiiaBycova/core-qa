@@ -1,12 +1,14 @@
 package com.example.teamcity.ui;
 
-import com.codeborne.selenide.Condition;
 import com.example.teamcity.api.generators.RandomData;
+import com.example.teamcity.api.requests.unchecked.UncheckedBuildConfig;
+import com.example.teamcity.api.spec.Specifications;
 import com.example.teamcity.ui.pages.admin.CreateNewBuildConfig;
-import com.example.teamcity.ui.pages.admin.CreateNewProject;
 import com.example.teamcity.ui.pages.admin.GeneralSettingsOfProject;
-import com.example.teamcity.ui.pages.favorites.ProjectsPage;
+import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
+
+import java.util.List;
 
 public class CreateNewBuildConfigTest extends BaseUiTest {
 
@@ -27,8 +29,9 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
      * 5. Ввести имя билд-конфигурации → Proceed
      * 6. Проверка отображения сообщения "New build configuration have been successfully created."
      * 7. Перейти на страницу редактирования проекта
-     * 8. Проверка, что билд-конфигурация создана и отображается в таблице билд-конфигураций проекта
-     * 9. --Очистка данных--
+     * 8. Проверка, что билд-конфигурация создана - отображается в таблице билд-конфигураций проекта
+     * 9. Проверка, что билд-конфигурация создана - API запрос
+     * 10. --Очистка данных--
      */
     @Test
     public void authorizedUserShouldBeAbleCreateNewBuildConfigByUrl() {
@@ -37,7 +40,7 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
         var url = "https://github.com/AnastasiiaBycova/core-qa";
         var defaultBranch = RandomData.getString();
         var textOfSuccessCreateBuildConfig =
-                "New build configuration\"" + testData.getBuildType().getName() + "\" and VCS root " + url + '#' + defaultBranch + "\" have been successfully created.";
+                String.format("New build configuration \"%s\" and VCS root %s#%s have been successfully created.", testData.getBuildType().getName(), url, defaultBranch);
 
         checkedWithSuperUser.getProjectRequest().create(testData.getProject());
         loginAsUser(testData.getUser());
@@ -56,6 +59,10 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
         generalSettingsOfProject
                 .openEditProject(testData.getProject().getId())
                 .verifyBuildConfigVisibilityInTable(testData.getBuildType().getName());
+
+        new UncheckedBuildConfig(Specifications.getSpec().authSpec(testData.getUser()))
+                .get(testData.getBuildType().getId())
+                .then().assertThat().statusCode(HttpStatus.SC_OK);
     }
 
 
@@ -76,13 +83,15 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
      * 8. Перейти в создание build Config Manually
      * 9. Ввести Name → Ввести build Configuration ID (такое же, как в п.5) → Create
      * 10. Проверка отображения сообщения ошибки "The build configuration / template ID "Test123_Testname2" is already used by another configuration or template"
-     * 11. --Очистка данных--
+     * 11. Проверка, что вторая билд-конфигурация не создана - API запрос (в списке конфигурация должна быть только одна конфигурация с заданным именем)
+     * 12. --Очистка данных--
      */
 
     @Test
     public void authorizedUserShouldNotBeAbleCreateTwoEqualBuildConfigInProject() {
 
         var testData = testDataStorage.addTestDataForUITest();
+        String testBuildName = testData.getBuildType().getName();
         var textOfFailCreateBuildConfig =
                "The build configuration / template ID \"" + testData.getBuildType().getId() + "\" is already used by another configuration or template";
 
@@ -94,16 +103,27 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
                 .createBuildConfig();
 
         createNewBuildConfig
-                .createBuildConfigManually(testData.getBuildType().getName(), testData.getBuildType().getId());
+                .createBuildConfigManually(testBuildName, testData.getBuildType().getId());
 
         generalSettingsOfProject
                 .openEditProject(testData.getProject().getId())
                 .createBuildConfig();
 
         createNewBuildConfig
-                .createBuildConfigManually(testData.getBuildType().getName(), testData.getBuildType().getId());
+                .createBuildConfigManually(testBuildName, testData.getBuildType().getId());
 
         createNewBuildConfig
                 .errorMessageVisible(textOfFailCreateBuildConfig);
+
+        // Проверка на уровне API:
+        var responseBuildConfig = new UncheckedBuildConfig(Specifications.getSpec().authSpec(testData.getUser()))
+                .get();
+
+        List<String> buildNames = responseBuildConfig.jsonPath().getList("buildType.name");
+
+        if (buildNames.stream().filter(name -> name.equals(testBuildName)).count() != 1) {
+            // Если количество билдов с именем не равно 1, то генерируем ошибку
+            throw new AssertionError("Expected exactly one build configuration with name: " + testBuildName);
+        }
     }
 }
