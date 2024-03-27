@@ -25,6 +25,10 @@ public class UncheckedBuildConfig extends Request implements CrudInterface {
         return given().spec(spec).get(BUILD_CONFIG_ENDPOINT + "/id:" + id);
     }
 
+    public Response get() {
+        return given().spec(spec).get(BUILD_CONFIG_ENDPOINT);
+    }
+
     @Override
     public Object update(Object obj) {
         return null;
