@@ -102,6 +102,11 @@
                             <value>${project.build.directory}/allure-results</value>
                         </property>
                     </systemProperties>
+                        <suiteXmlFiles>
+                            <!-- Specify the path to your XML file here -->
+                            <suiteXmlFile>testng-suites/api-suite.xml</suiteXmlFile>
+                            <suiteXmlFile>testng-suites/ui-suite.xml</suiteXmlFile>
+                        </suiteXmlFiles>
                 </configuration>
                 <dependencies>
                     <dependency>
