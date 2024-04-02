@@ -24,7 +24,8 @@ jobs:
         # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
 
       - name: Set up host config.properties
-        run: echo "host=$HOST:8111 >> src/main/resources/config.properties
+        run: echo "host=$HOST:8111" >> src/main/resources/config.properties
+
 
       - name: Pull Selenoid Chrome/Firefox/..
         run: docker pull selenoid/vnc_chrome:119.0
