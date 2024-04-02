@@ -17,7 +17,7 @@ jobs:
       - name: Install ifconfig
         run: sudo apt-get update && sudo apt-get install -y net-tools
 
-      - name: Set up host environment variables
+      - name: Setup host environment variables
         # Команда для определения ip адреса для обращения из другого контейнера, рекомендуется в документации Selenoid UI: https://aerokube.com/selenoid-ui/latest/
         run: |
           echo "HOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)" >> $GITHUB_ENV
@@ -58,14 +58,15 @@ jobs:
           -p 8111:8111 \
           jetbrains/teamcity-server:2023.11.1
 
-      - name: Set up Teamcity Server
+      - name: Setup Teamcity Server
+        run: chmod +x mvnw
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
 
-      - name: Set up superUserToken environment variable
+      - name: Setup superUserToken environment variable
         # Берем из лога контейнера строку с последним упоминанием токена, из нее 6-е слово, что соответствует токену
         run: echo "SUPER_USER_TOKEN=$(docker logs teamcity-server | grep 'Super user authentication token' | tail -n 1 | awk '{print $6}')" >> $GITHUB_ENV
 
-      - name: Set up superUserToken to config property
+      - name: Setup superUserToken to config property
         run: echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
 
       - name: Run TeamCity agent
@@ -81,7 +82,7 @@ jobs:
 
       - name: Run tests
         # Указываем группу, чтобы еще раз не запустить тесты, которые использовались для сетапа сервера и агента
-        run: ./mvnw clean test -Dgroups=Regression
+        run: ./mvnw clean test -Dgroups=API_Regression
 
 
 
