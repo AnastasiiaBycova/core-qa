@@ -58,8 +58,10 @@ jobs:
           -p 8111:8111 \
           jetbrains/teamcity-server:2023.11.1
 
-      - name: Setup Teamcity Server
+      - name: Change permission
         run: chmod +x mvnw
+
+      - name: Setup Teamcity Server
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
 
       - name: Setup superUserToken environment variable
