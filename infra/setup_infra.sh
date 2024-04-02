@@ -1,7 +1,5 @@
 cd ..
 
-##current=$(echo $PWD | sed 's/\\/\//g' | sed 's/C/c/')
-
 teamcity_tests_directory=$PWD
 
 workdir="teamcity_tests_infrastructure"
@@ -44,11 +42,9 @@ echo "Start teamcity server"
 cd $teamcity_server_workdir
 mkdir logs
 mkdir datadir
-docker run --name teamcity-server-instance -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$teamcity_server_workdir/datadir -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$teamcity_server_workdir/logs -p 8111:8111 jetbrains/teamcity-server
+docker run -d --name $teamcity_teamcity_server_container_name -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$teamcity_server_workdir/datadir -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$teamcity_server_workdir/logs -p 8111:8111 jetbrains/teamcity-server
 #docker run --name teamcity-server-instance -v $PWD/$teamcity_server_workdir/datadir:/data/teamcity_server/datadir -v $PWD/$teamcity_server_workdir/logs:/opt/teamcity/logs -p 8111:8111 jetbrains/teamcity-server
 
-#Подтверждение запуска
-start "" "http://localhost:8111"
 
 echo "Teamcity Server is running..."
 
@@ -59,8 +55,7 @@ cd .. && cd $selenoid_workdir
 mkdir config
 cp $teamcity_tests_directory/infra/browsers.json config/
 
-docker run -d --name $selenoid_container_name -p 4444:4444 -v /var/run/docker.sock:/var/run/docker.sock -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$selenoid_workdir/config/:/etc/selenoid/:ro aerokube/selenoid:latest-release
-#docker run -d --name $selenoid_container_name -p 4444:4444 -v /var/run/docker.sock:/var/run/docker.sock -v $PWD/config/:/etc/selenoid/:ro aerokube/selenoid:latest-release
+docker run -d --name $selenoid_container_name -p 4444:4444 -v /tmp/docker.sock:/var/run/docker.sock -v C:/Users/1/Desktop/workshop/version2/teamcity-testing-framework/teamcity_tests_infrastructure/$selenoid_workdir/config/:/etc/selenoid/:ro aerokube/selenoid:latest-release
 
 image_names=($(awk -F'"' '/"image": "/{print $4}' "$PWD/config/browsers.json"))
 echo "Pull all browser images: ${image_names[@]}"
@@ -87,7 +82,7 @@ echo "Super user token: $superuser_token"
 echo "Run system tests"
 cd .. && cd .. && cd ..
 
-echo -e "host=$ip:8111\nsuperUserToken=$superuser_token\nremote=http://$ip:4444/wd/hub\nbrowser=firefox" > $teamcity_tests_directory/src/main/resources/config.properties
+echo -e "host=$ip:8111\nsuperUserToken=admin:admin\nremote=http://$ip:4444/wd/hub\nbrowser=firefox" > $teamcity_tests_directory/src/main/resources/config.properties
 cat $teamcity_tests_directory/src/main/resources/config.properties
 
 echo "Run API tests"

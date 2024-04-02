@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 
 // 0.
 public class BuildConfigurationTest extends BaseApiTest {
-    @Test
+    @Test(groups = "API_Regression")
     public void buildConfigurationTest() {
 
         var testData = testDataStorage.addTestData();
@@ -35,7 +35,7 @@ public class BuildConfigurationTest extends BaseApiTest {
     2. Создать билд-конфигурацию с заполненем валидными данными всех обязательных полей
     3. Проверка, что билд конфигурация создана
     */
-    @Test
+    @Test(groups = "API_Regression")
     public void successfulCreatBuildConfig() {
         var testData = testDataStorage.addTestData();
 
@@ -63,7 +63,7 @@ public class BuildConfigurationTest extends BaseApiTest {
     3. Создать билд конфигурацию-2 с данными билд конфигурации-1
     Проверка, что билд конфигурация-2 успешно создана
     */
-    @Test
+    @Test(groups = "API_Regression")
     public void successfulCreatBuildConfigAfterRemoveSameBuildConfig() {
         var testData = testDataStorage.addTestData();
 
@@ -99,7 +99,7 @@ public class BuildConfigurationTest extends BaseApiTest {
    Проверка статус кода ответа и сообщения об ошибке.
    3. Проверка, что билд конфигурация НЕ создана
    */
-    @Test
+    @Test(groups = "API_Regression")
     public void failCreatBuildConfigWithoutParentProject() {
         var userAndProjectData = testDataStorage.addTestData();
         var buildConfigTestData = TestDataGenerator.generate();

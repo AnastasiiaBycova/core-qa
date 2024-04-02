@@ -19,22 +19,39 @@ public class StartUpPage extends Page {
 
     private SelenideElement acceptLicense = element(Selectors.byId("accept"));
 
+    private SelenideElement usernameInput = element(Selectors.byId("input_teamcityUsername"));
+    private SelenideElement passwordInput = element(Selectors.byId("password1"));
+
+    private SelenideElement confirmPasswordInput = element(Selectors.byId("retypedPassword"));
+
 
     public StartUpPage open() {
-        Selenide.open("/");
+        Selenide.open("/mnt");
         return this;
     }
 
     public StartUpPage setupTeamCityServer() {
-        waitUntilPageIsLoaded();
+        waitUntilStartPageIsLoaded();
         proceedButton.click();
-        waitUntilPageIsLoaded();
+        waitUntilStartPageIsLoaded();
         proceedButton.click();
-        waitUntilPageIsLoaded();
+        waitUntilStartPageIsLoaded();
         acceptLicense.shouldBe(Condition.enabled, Duration.ofMinutes(5));
         acceptLicense.scrollTo();
         acceptLicense.click();
         submitButton.click();
+        return this;
+    }
+
+    public StartUpPage createAdministratorAccount() {
+        waitUntilStartPageIsLoaded();
+        usernameInput.clear();
+        usernameInput.sendKeys("admin");
+        passwordInput.clear();
+        passwordInput.sendKeys("admin");
+        confirmPasswordInput.clear();
+        confirmPasswordInput.sendKeys("admin");
+        submit();
         return this;
     }
 }
