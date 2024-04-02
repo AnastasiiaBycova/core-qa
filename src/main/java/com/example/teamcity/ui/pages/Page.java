@@ -22,6 +22,8 @@ public abstract class Page {
 
     private SelenideElement pageCreateWaitingMarker = element(Selectors.byClass("icon-refresh icon-spin ring-loader-inline progressRing progressRingDefault"));
 
+    private SelenideElement pageStartWaitingMarker = element(Selectors.byClass("icon-refresh icon-spin ring-loader-inline stage-status__icon"));
+
     //waiting сохранения данных
     public void submit() {
         submitButton.click();
@@ -32,6 +34,10 @@ public abstract class Page {
     public void waitUntilPageIsLoaded() {
         pageWaitingMarker1.shouldNotBe(Condition.visible, Duration.ofMinutes(1));
         pageWaitingMarker2.shouldNotBe(Condition.visible, Duration.ofMinutes(1));
+    }
+
+    public void waitUntilStartPageIsLoaded() {
+        pageStartWaitingMarker.shouldNotBe(Condition.visible, Duration.ofMinutes(5));
     }
 
     public void waitUntilDataIsSaved() {
