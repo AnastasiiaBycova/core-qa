@@ -33,7 +33,7 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
      * 9. Проверка, что билд-конфигурация создана - API запрос
      * 10. --Очистка данных--
      */
-    @Test
+    @Test(groups = "UI_Regress")
     public void authorizedUserShouldBeAbleCreateNewBuildConfigByUrl() {
 
         var testData = testDataStorage.addTestDataForUITest();
@@ -87,7 +87,7 @@ public class CreateNewBuildConfigTest extends BaseUiTest {
      * 12. --Очистка данных--
      */
 
-    @Test
+    @Test(groups = "UI_Regress")
     public void authorizedUserShouldNotBeAbleCreateTwoEqualBuildConfigInProject() {
 
         var testData = testDataStorage.addTestDataForUITest();

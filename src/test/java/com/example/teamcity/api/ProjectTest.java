@@ -16,7 +16,7 @@ public class ProjectTest extends BaseApiTest {
     2. Проверка, что проект создался
     */
 
-    @Test
+    @Test(groups = "API_Regress")
     public void successfulCreatProject() {
         var testData = testDataStorage.addTestData();
 
@@ -39,7 +39,7 @@ public class ProjectTest extends BaseApiTest {
     2. Проверка сообщения об ошибке и статус кода
     3. Запросить создаваемы проект - проверка, что такого проекта не существует
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void failCreatProjectWithWrongData() {
         var userTestData = testDataStorage.addTestData();
         var projectTestData = TestDataGenerator.generateInvalidData();
@@ -65,7 +65,7 @@ public class ProjectTest extends BaseApiTest {
 
     */
 
-    @Test
+    @Test(groups = "API_Regress")
     public void createProjectWithUniqueId() {
         var testData = testDataStorage.addTestData();
 

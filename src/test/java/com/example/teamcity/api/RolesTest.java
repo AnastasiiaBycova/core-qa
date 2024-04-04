@@ -5,7 +5,6 @@ import com.example.teamcity.api.generators.TestDataGenerator;
 import com.example.teamcity.api.requests.checked.CheckedBuildConfig;
 import com.example.teamcity.api.requests.checked.CheckedProject;
 import com.example.teamcity.api.requests.unchecked.UncheckedBuildConfig;
-import com.example.teamcity.api.requests.unchecked.UncheckedProject;
 import com.example.teamcity.api.spec.Specifications;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
@@ -18,7 +17,7 @@ public class RolesTest extends BaseApiTest{
     2) Проверяем корректность ошибки
     3) Проверяем несоздание сущности
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void unauthorizedUserShouldNotHaveRightToCreateProject() {
         var testData = testDataStorage.addTestData();
 
@@ -40,7 +39,7 @@ public class RolesTest extends BaseApiTest{
     2) Создаем проект
     3) Проверяем, что проект создался
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void systemAdminShouldHaveRightsToCreateProject() {
         var testData = testDataStorage.addTestData();
 
@@ -63,7 +62,7 @@ public class RolesTest extends BaseApiTest{
     2) Создаем конфигурацию для проекта, где он PROJECT_ADMIN
     3) Проверяем, что конфигурация создалась
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void projectAdminShouldHaveRightsToCreateBuildConfigToHisProject() {
         var testData = testDataStorage.addTestData();
 
@@ -90,7 +89,7 @@ public class RolesTest extends BaseApiTest{
     2) Создаем конфигурацию для проекта, где он НЕ PROJECT_ADMIN
     3) Проверяем, что конфигурация НЕ создалась
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void projectAdminShouldNotHaveRightsToCreateBuildConfigToAnotherProject() {
         var firstTestData = testDataStorage.addTestData();
         var secondTestData = testDataStorage.addTestData();
@@ -126,7 +125,7 @@ public class RolesTest extends BaseApiTest{
     6) Логинимся под пользователем с правами PROJECT_VIEWER
     7) Проверяем, что PROJECT_VIEWER видит созданную билд конфигурацию
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void projectViewerShouldHaveRightsToReadBuildConfigToHisProject() {
         var firstTestData = testDataStorage.addTestData();
         var secondTestData = testDataStorage.addTestData();
@@ -165,7 +164,7 @@ public class RolesTest extends BaseApiTest{
     4) Создаем билд конфигурацию для проекта
     5) Проверяем, что PROJECT_VIEWER видит созданную билд конфигурацию
     */
-    @Test
+    @Test(groups = "API_Regress")
     public void projectViewerShouldNotHaveRightsToCreateBuildConfigToHisProject() {
         var testData = testDataStorage.addTestData();
 
