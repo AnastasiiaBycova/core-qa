@@ -33,7 +33,7 @@ public class CreateNewProjectTest extends BaseUiTest {
 9. Проверка, что проект создан - API запрос
 10. --Очистка данных--
 */
-    @Test
+    @Test(groups = "UI_Regress")
     public void authorizedUserShouldBeAbleCreateNewProjectByUrl() {
         var testData = testDataStorage.addTestDataForUITest();
         var url = "https://github.com/AnastasiiaBycova/core-qa";
@@ -68,7 +68,7 @@ public class CreateNewProjectTest extends BaseUiTest {
      9. Проверка, что проект создан - API запрос
      10. --Очистка данных--
      */
-    @Test
+    @Test(groups = "UI_Regress")
     public void authorizedUserShouldBeAbleCreateNewProjectManually() {
         var testData = testDataStorage.addTestDataForUITest();
         var textOfSuccessCreateProject = "Project " + testData.getProject().getName() + " has been successfully created. You can now create a build configuration.";
@@ -103,7 +103,7 @@ public class CreateNewProjectTest extends BaseUiTest {
      7. --Очистка данных--
     */
 
-    @Test
+    @Test(groups = "UI_Regress")
     public void authorizedUserWithRightProjectViewerShouldNotBeAbleCreateNewProject() {
         var testData = testDataStorage.addTestDataForUITest();
 

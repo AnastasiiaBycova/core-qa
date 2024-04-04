@@ -1,89 +1,140 @@
-name: TeamCity Tests;
-
+name: TeamCity-Tests;
 on: push
 
 jobs:
-  run_teamcity_tests:
+  run_teamcity_settings:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+
+      # 1. Установка Java
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
 
-      # По умолчанию в ubuntu нет команды ifconfig
+      # 2. Установка команды для ifconfig для Ubuntu
       - name: Install ifconfig
         run: sudo apt-get update && sudo apt-get install -y net-tools
 
+      # 3. Установка переменной ip адреса для обращения из другого контейнера
+      # Храним переменные в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
       - name: Setup host environment variables
-        # Команда для определения ip адреса для обращения из другого контейнера, рекомендуется в документации Selenoid UI: https://aerokube.com/selenoid-ui/latest/
         run: |
           echo "HOST=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)" >> $GITHUB_ENV
-        # Храним переменные как в переменных среды ($GITHUB_ENV), для использования внутри этого yml файла, так и в config.properties, для использования в тестах
 
+      # 4. Установка переменной HOST
       - name: Setup host config.properties
         run: echo "host=$HOST" >> src/main/resources/config.properties
 
+      - name: Setup remote config.properties
+        run: echo "remote=http://$HOST:4444/wd/hub" >> src/main/resources/config.properties
 
-      - name: Pull Selenoid Chrome/Firefox/..
-        run: docker pull selenoid/vnc_chrome:119.0
+      # 5. Установка образов браузеров
+      - name: Pull Selenoid Chrome/Firefox/Opera..
+        run: docker pull selenoid/vnc:chrome_91.0
 
+      - name: Pull Selenoid Chrome/Firefox/Opera..
+        run: docker pull selenoid/vnc:firefox_89.0
+
+      - name: Pull Selenoid Chrome/Firefox/Opera..
+        run: docker pull selenoid/vnc:opera_76.0
+
+      # 6. Установка Selenoid
       - name: Run Selenoid
         run: |
-          docker run -d --name selenoid \
+          docker run -d --name selenoid_pipeline_instance \
+          -p 4444:4444 \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v $(pwd)/config/:/etc/selenoid/:ro \
-          -p 4444:4444 \
-          aerokube/selenoid
+          aerokube/selenoid:latest-release
 
-      # В этом степе нет смысла, так как через GitHub Actions нет доступа к Selenoid UI. Но зато это полезно при локальном запуске через act, для отладки
+      # 7. Установка Selenoid-UI
+      # через GitHub Actions нет доступа к Selenoid UI. Но это полезно при локальном запуске через act - для отладки
       - name: Run Selenoid UI
         run: |
-          docker run -d --name selenoid-ui \
+          docker run -d --name selenoid_ui_pipeline_instance \
           -p 8080:8080 \
           aerokube/selenoid-ui \
-          --selenoid-uri http://$HOST:4444
+          --selenoid-uri http://///$HOST:4444
 
+      # 8. Установка TeamCity server
+      # Флаг -u 0 запускает контейнер от имени root, чтобы был доступ на запись файлов в директории, указанные в volume.
+      # По-хорошему, надо делать chown -R 1000:1000 на эти директории и запускать контейнер без этого флага, но это усложнение пайплайна
+      # Указываем конкретную версию для сервера и агента
       - name: Run TeamCity server
-        # Флаг -u 0 запускает контейнер от имени root, чтобы был доступ на запись файлов в директории, указанные в volume.
-        # По-хорошему, надо делать chown -R 1000:1000 на эти директории и запускать контейнер без этого флага,
-        # но это усложнение пайплайна
-        # Указываем конкретную версию для сервера и агента
         run: |
-          docker run -u 0 -d --name teamcity-server \
+          docker run -u 0 -d --name teamcity_server_pipeline_instance \
           -v $(pwd)/tmp/teamcity_server/datadir:/data/teamcity_server/datadir \
           -v $(pwd)/tmp/teamcity_server/logs:/opt/teamcity/logs \
           -p 8111:8111 \
           jetbrains/teamcity-server:2023.11.1
 
+      # 9. Изменения прав для запуска тестов
       - name: Change permission
         run: chmod +x mvnw
 
+      # 10. Мануальная настройка teamCity сервера после запуска контейнера
       - name: Setup Teamcity Server
         run: ./mvnw clean test -Dtest=SetupTest#startUpTest
+        continue-on-error: true
 
+      # 11. Стоп пайплайн в случае fail теста из 10 шага
+      - name: Check SetupTest result
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "SetupTest failed. Stopping the pipeline."
+            exit 1
+          fi
+
+      # 12. Поиск superUserToken в логах контейнера
+      # Берем из лога строку с последним упоминанием токена, из нее 6-е слово соответствует токену
       - name: Setup superUserToken environment variable
-        # Берем из лога контейнера строку с последним упоминанием токена, из нее 6-е слово, что соответствует токену
-        run: echo "SUPER_USER_TOKEN=$(docker logs teamcity-server | grep 'Super user authentication token' | tail -n 1 | awk '{print $6}')" >> $GITHUB_ENV
+        run: echo "SUPER_USER_TOKEN=$(docker logs teamcity_server_pipeline_instance | grep 'Super user authentication token' | tail -n 1 | awk '{print $6}')" >> $GITHUB_ENV
 
+      # 13. Установка переменной superUserToken
       - name: Setup superUserToken to config property
         run: echo "superUserToken=$SUPER_USER_TOKEN" >> src/main/resources/config.properties
 
-      - name: Run TeamCity agent
-        run: |
-          docker run -e SERVER_URL=http://$HOST:8111 -u 0 -d --name teamcity-agent \
-          -v $(pwd)/tmp/teamcity_agent/conf:/data/teamcity_agent/conf \
-          jetbrains/teamcity-agent:2023.11.1
+      # 14. Установка TeamCity agent - в тестах не задействован, поэтому пока задизейблен
+      #- name: Run TeamCity agent
+      #  run: |
+      #    docker run -e SERVER_URL=http://$HOST:8111 -u 0 -d --name teamcity-agent \
+      #    -v $(pwd)/tmp/teamcity_agent/conf:/data/teamcity_agent/conf \
+      #    jetbrains/teamcity-agent:2023.11.1
 
+      # 15. Активания TeamCity agent на сервере - в тестах не задействован, поэтому пока задизейблен
       #- name: Set up TeamCity agent
         # Авторизация агента при первом запуске, реализованная в виде теста
         # Не указываем clean, чтобы потом в итоговом репорте были и setup тесты
       #  run: ./mvnw test -Dtest=SetupFirstStartTest#setupTeamCityAgentTest
 
+
+  API_tests:
+    needs: [run_teamcity_settings]
+    if: ${{ needs.run_teamcity_settings.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Запуск АПИ тестов из группы регрессии
       - name: Run tests
-        run: ./mvnw clean test -Dgroups=API_Regression
+        run: ./mvnw clean test -Dgroups=API_Regress
+
+  UI_tests:
+    needs: [API_tests]
+    if: ${{ needs.API_tests.result == 'pass' }}
+    strategy:
+      matrix:
+        browser: [chrome, firefox, opera]
+    runs-on: ubuntu-latest
+    #run: echo "host=$HOST" >> src/main/resources/config.properties
+    steps:
+      # 1. Запуск UI тестов из группы регрессии
+      - name: Run tests
+        run: |
+          for browser in ${{ matrix.browser }}; do
+            ./mvnw clean test -Dbrowser=$browser -Dgroups=UI_Regress
+          done
 
 
 
