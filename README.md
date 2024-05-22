@@ -30,3 +30,5 @@ Status of Last Deployment:<br>
 Файл пайплайна: 
 ### ../.github/workflows/test.yml
 
+test
+
